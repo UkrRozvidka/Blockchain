@@ -8,42 +8,44 @@ using System.Transactions;
 
 namespace Lab1
 {
-    class Blockchain : IBlockchain
+    public class Blockchain : IBlockchain
     {
-        private List<Block> _chain = new List<Block>();
-        private readonly IHashFunction _hashFunction;
+        public List<Block> Chain { get; private set; }  = new List<Block>();
+        public List<IRule> Rules { get; private set; }
+        public readonly IHashFunction hashFunction;
 
-        public Blockchain(IHashFunction hashFunction) 
+        public Blockchain(IHashFunction hashFunction, List<IRule> rules) 
         {
-            var genesisHash = new String('0', 64);
-            _hashFunction = hashFunction;
-            _chain.Add(new Block(0, 0, genesisHash, null));
+            var genesisHash = new String('0', 58) + "batsan";
+            this.hashFunction = hashFunction;
+            Rules = rules;
+            this.AddBlock(new Block(0, 0, genesisHash, null));
+
         }
 
         private bool BlockValidation(Block block) // TODO: Add transaction check 
         {
-            var tail = _chain.LastOrDefault();
-            var tailHash = _hashFunction.GetHash(JsonSerializer.Serialize(tail));
-            if (block.PrevHash == tailHash && block.Index == _chain.Count)
-               return true;
+           foreach(var rule in Rules)
+           {
+                if(!rule.IsValid(this, block)) return false;
+           }
+           return true;
+        }
+
+        public bool AddBlock(Block block)
+        {
+            if (BlockValidation(block))
+            {
+                Chain.Add(block);
+                Console.WriteLine(block.ToString()); //TODO replace by event
+                return true;
+            }
             return false;
-        }
-
-        public void AddBlock(Block block)
-        {
-            if (BlockValidation(block)) _chain.Add(block);
-            else throw new ApplicationException("block is not valid");
-        }
-
-        public void AddBlock(int nonce, List<Transaction> transactions) 
-        {
-            var prevHash = _hashFunction.GetHash(JsonSerializer.Serialize(_chain.LastOrDefault()));
-            _chain.Add(new Block(_chain.Count, nonce, prevHash, transactions));
         }
 
         public IEnumerator<Block> GetEnumerator()
         {
-            return _chain.GetEnumerator();
+            return Chain.GetEnumerator();
         }
 
         IEnumerator IEnumerable.GetEnumerator()

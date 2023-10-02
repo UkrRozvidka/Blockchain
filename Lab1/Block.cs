@@ -23,5 +23,11 @@ namespace Lab1
             Transactions = transactions;
         }
 
+        public override string ToString()
+        {
+            return $"Index: {Index}; Nonce: {Nonce}; {TimeStamp.ToString("yyyy-MM-dd HH:mm:ss.fffffff")}; " +
+                $"{PrevHash};";
+        }
+
     }
 }

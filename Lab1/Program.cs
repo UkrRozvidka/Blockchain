@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Lab1.Rules;
+using System;
 using System.Collections.Generic;
 
 namespace Lab1
@@ -7,21 +8,13 @@ namespace Lab1
     {
         public static void Main(string[] args)
         {
-            var q = new LinkedList<string>();
-            var blockchain = new Blockchain(new SHA256Hash());
-            blockchain.AddBlock(0, null);
-            blockchain.AddBlock(0, null);
-            blockchain.AddBlock(0, null);
-            blockchain.AddBlock(0, null);
-            blockchain.AddBlock(0, null);
-            blockchain.AddBlock(0, null);
-
-            foreach(var block in blockchain)
-            {
-                Console.WriteLine($"{block.Index} {block.Nonce} {block.PrevHash} " +
-                    $"{block.TimeStamp.ToString("yyyy-MM-dd HH:mm:ss.fffffff")}");
-
-            }
+            var rules = new List<IRule>();
+            rules.Add(new IndexRule());
+            rules.Add(new PrevHashRule());
+            rules.Add(new ProofOfWorkRule());
+            var blockchain = new Blockchain(new SHA256Hash(), rules);
+            var minner = new Minner(blockchain);
+            minner.Mine();
         }
     }
 }

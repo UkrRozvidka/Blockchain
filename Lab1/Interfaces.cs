@@ -6,13 +6,18 @@ using System.Threading.Tasks;
 
 namespace Lab1
 {
-    interface IBlockchain : IEnumerable<Block>
+    public interface IBlockchain : IEnumerable<Block>
     {
-        void AddBlock(Block block);
+        bool AddBlock(Block block);
     }
 
-    interface IHashFunction
+    public interface IHashFunction
     {
-        string GetHash(string data);
+        string GetHash(Block block);
+    }
+
+    public interface IRule
+    {
+        bool IsValid(Blockchain blockchain, Block block);
     }
 }

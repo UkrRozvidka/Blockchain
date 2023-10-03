@@ -15,6 +15,10 @@ namespace Lab1
             var blockchain = new Blockchain(new SHA256Hash(), rules);
             var minner = new Minner(blockchain);
             minner.Mine();
+            Console.WriteLine("=============================");
+            foreach (var b in blockchain) { 
+                Console.WriteLine(b);
+            }
         }
     }
 }

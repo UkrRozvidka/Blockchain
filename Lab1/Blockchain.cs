@@ -19,7 +19,7 @@ namespace Lab1
             var genesisHash = new String('0', 58) + "batsan";
             this.hashFunction = hashFunction;
             Rules = rules;
-            this.AddBlock(new Block(0, 0, genesisHash, null));
+            Chain.Add(new Block(0, 0, genesisHash, null));
 
         }
 

@@ -16,11 +16,17 @@ namespace Lab1
 
         public void Mine()
         {
+            int n = 0;
             for(int i = 0; i < int.MaxValue; i++)
             {
                 var block = new Block(_blockchain.Chain.Count, i, 
                     _blockchain.hashFunction.GetHash(_blockchain.Chain.LastOrDefault()), null);
-                if (_blockchain.AddBlock(block)) i = 0;
+                if (_blockchain.AddBlock(block))
+                {
+                    i = 0;
+                    n++;
+                    if (n == 5) return;
+                }
             }
         }
     }

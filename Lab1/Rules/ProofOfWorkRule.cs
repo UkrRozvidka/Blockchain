@@ -8,10 +8,10 @@ namespace Lab1.Rules
 {
     public class ProofOfWorkRule : IRule
     {
-        public bool IsValid(Blockchain blokchain, Block block)
+        public bool IsValid(Blockchain blockchain, Block block)
         {
-            if (block == null || blokchain == null) throw new ArgumentNullException();
-            return blokchain.hashFunction.GetHash(block).StartsWith(new string('0', 4));
+            if (block == null || blockchain == null) throw new ArgumentNullException();
+            return blockchain.hashFunction.GetHash(block).StartsWith(new string('0', blockchain.Dificalty));
         }   
     }
 }

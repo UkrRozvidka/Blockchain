@@ -8,11 +8,11 @@ namespace Lab1
 {
     public class Block
     {
-        public int Index { get; private set; }
-        public DateTime TimeStamp {  get; private set; }
-        public int Nonce { get; private set; }
-        public string PrevHash { get; private set; }
-        public List<Transaction> Transactions { get; private set; }
+        public int Index { get; set; }
+        public DateTime TimeStamp {  get; set; }
+        public int Nonce { get; set; }
+        public string PrevHash { get; set; }
+        public List<Transaction> Transactions { get; set; }
 
         public Block(int index, int nonce, string prevHash, List<Transaction> transactions)
         {

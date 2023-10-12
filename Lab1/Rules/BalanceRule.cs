@@ -6,11 +6,11 @@ using System.Threading.Tasks;
 
 namespace Lab1.Rules
 {
-    public class BalanceRule : IRule, IValidationTransactionRule
+    public class BalanceRule : IValidationTransactionRule
     {
-        public bool IsValid(Blockchain blockchain, Block block)
+        public bool IsValid(Node node, Block block)
         {
-            if (block == null || blockchain == null) throw new ArgumentNullException();
+            if (block == null || node == null) throw new ArgumentNullException();
             bool isFirstTransaction = true;
             foreach (var transaction in block.Transactions)
             {
@@ -19,15 +19,15 @@ namespace Lab1.Rules
                     isFirstTransaction = false;
                     continue;
                 }
-                if (!IsValid(blockchain, transaction)) return false;        
+                if (!IsValid(node, transaction)) return false;        
             }
             return true;
         }
 
-        public bool IsValid(Blockchain blockchain, Transaction transaction)
+        public bool IsValid(Node node, Transaction transaction)
         {
-            if (transaction == null || blockchain == null) throw new ArgumentNullException();
-            if (blockchain.Balances[transaction.Data.From] < transaction.Data.Amount)
+            if (transaction == null || node == null) throw new ArgumentNullException();
+            if (node.Balances[transaction.Data.From] < transaction.Data.Amount)
                     return false;
             return true;
         }

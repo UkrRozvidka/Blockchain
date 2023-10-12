@@ -11,7 +11,8 @@ namespace Lab1.Rules
         public bool IsValid(Blockchain blockchain, Block block)
         {
             if (block == null || blockchain == null) throw new ArgumentNullException();
-            return blockchain.hashFunction.GetHash(block).StartsWith(new string('0', blockchain.Dificalty));
+            var res = blockchain.hashFunction.GetHash(block).StartsWith(new string('0', blockchain.Dificalty));
+            return res;
         }   
     }
 }

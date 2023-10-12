@@ -18,6 +18,6 @@ namespace Lab1
 
     public interface IValidationTransactionRule
     {
-        bool IsValid(Blockchain blockchain, Transaction transaction);
+        bool IsValid(Node node, Transaction transaction);
     }
 }

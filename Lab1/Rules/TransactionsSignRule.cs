@@ -7,11 +7,11 @@ using System.Threading.Tasks;
 
 namespace Lab1.Rules
 {
-    public class TransactionsSignRule : IRule, IValidationTransactionRule
+    public class TransactionsSignRule : IValidationTransactionRule
     {
-        public bool IsValid(Blockchain blockchain, Block block)
+        public bool IsValid(Node node, Block block)
         {
-            if (block == null || blockchain == null) throw new ArgumentNullException();
+            if (block == null || node.Blockchain == null) throw new ArgumentNullException();
             bool isFirstTransaction = true;
             foreach (var transaction in block.Transactions)
             {
@@ -20,12 +20,12 @@ namespace Lab1.Rules
                     isFirstTransaction = false;
                     continue;
                 }
-                if (!IsValid(blockchain, transaction)) return false;
+                if (!IsValid(node, transaction)) return false;
             }
             return true;
         }
 
-        public bool IsValid(Blockchain blockchain, Transaction transaction)
+        public bool IsValid(Node node, Transaction transaction)
         {
             if(transaction == null) throw new ArgumentNullException();
             var encryptor = new Encrypt();

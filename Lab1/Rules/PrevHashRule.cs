@@ -11,7 +11,9 @@ namespace Lab1.Rules
         bool IRule.IsValid(Blockchain blockchain, Block block)
         {
             if (block == null || blockchain == null) throw new ArgumentNullException();
-            return block.PrevHash == blockchain.hashFunction.GetHash(blockchain.Chain.LastOrDefault());
+            var lastblockhash = blockchain.hashFunction.GetHash(blockchain.Chain.LastOrDefault());
+            var res = block.PrevHash == lastblockhash;
+            return res;
         }
     }
 }

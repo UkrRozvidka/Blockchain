@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Lab1
 {
-    public class Block
+    public class Block : ICloneable
     {
         public int Index { get; set; }
         public DateTime TimeStamp {  get; set; }
@@ -14,20 +14,33 @@ namespace Lab1
         public string PrevHash { get; set; }
         public List<Transaction> Transactions { get; set; }
 
-        public Block(int index, int nonce, string prevHash, List<Transaction> transactions)
+        public Block(int index, int nonce, string prevHash, List<Transaction> transactions, DateTime timeStamp = default)
         {
             Index = index;
-            TimeStamp = DateTime.Now;
             Nonce = nonce;
             PrevHash = prevHash;
             Transactions = transactions;
+            TimeStamp = timeStamp;
+            if(TimeStamp == default) TimeStamp = DateTime.UtcNow;
         }
 
         public override string ToString()
         {
-            return $"Index: {Index}; Nonce: {Nonce}; {TimeStamp.ToString("yyyy-MM-dd HH:mm:ss.fffffff")}; " +
-                $"{PrevHash};";
+            string res = $"Index: {Index}; Nonce: {Nonce}; {TimeStamp:yyyy-MM-dd HH:mm:ss.fffffff}; " +
+                $"{PrevHash};\n";
+            if( Transactions.Count > 0 )
+            {
+               foreach( Transaction t in Transactions )
+               {
+                    res +=t.ToString()+ '\n';
+               }
+            }
+            return res ;
         }
 
+        public object Clone()
+        {
+            return new Block(Index, Nonce, PrevHash, new List<Transaction>(Transactions), TimeStamp);
+        }
     }
 }

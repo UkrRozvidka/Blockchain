@@ -16,6 +16,11 @@ namespace Lab1
             Data = new TransactionData(from, to, amount);
             Sign = sign;
         }
+
+        public override string ToString()
+        {
+            return Data.ToString(); 
+        }
     }
 
     public class TransactionData
@@ -29,6 +34,11 @@ namespace Lab1
             From = from;
             To = to;
             Amount = amount;
+        }
+
+        public override string ToString()
+        {
+            return $"From: {From}; To:{To}; Amount:{Amount}";
         }
     }
 }

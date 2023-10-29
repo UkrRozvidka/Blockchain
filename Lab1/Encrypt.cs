@@ -14,16 +14,16 @@ namespace Lab1
     {
         public KeyPair GenerateKeyPair()
         { 
-            using RSACryptoServiceProvider rsa = new();
+            using RSACryptoServiceProvider rsa = new(512);
             var keyPair = new KeyPair();
             keyPair.PrivateKey = Convert.ToBase64String(rsa.ExportCspBlob(true));
             keyPair.PublicKey = Convert.ToBase64String(rsa.ExportCspBlob(false));
             return keyPair;
         }
 
-        public string SignData(string data, string privateKey)
+        public string SignData(string data, string? privateKey)
         {
-            using RSACryptoServiceProvider rsa = new();
+            using RSACryptoServiceProvider rsa = new(512);
             rsa.ImportCspBlob(Convert.FromBase64String(privateKey));
             byte[] dataBytes = Encoding.UTF8.GetBytes(data);
             return Convert.ToBase64String(rsa.SignData(dataBytes, SHA256.Create()));
@@ -31,7 +31,7 @@ namespace Lab1
 
         public bool VerifySign(string data, string publicKey, string sign)
         {
-            using RSACryptoServiceProvider rsa = new();
+            using RSACryptoServiceProvider rsa = new(512);
             rsa.ImportCspBlob(Convert.FromBase64String(publicKey));
             byte[] dataBytes = Encoding.UTF8.GetBytes(data);
             byte[] signBytes = Convert.FromBase64String(sign);

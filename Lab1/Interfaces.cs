@@ -20,4 +20,9 @@ namespace Lab1
     {
         bool IsValid(Node node, Transaction transaction);
     }
+
+    public interface ICommand
+    {
+        public void Execute();
+    }
 }

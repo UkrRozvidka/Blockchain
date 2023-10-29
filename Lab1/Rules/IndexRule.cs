@@ -12,7 +12,8 @@ namespace Lab1.Rules
         {
             if (block == null || blockchain == null) throw new ArgumentNullException();
 
-            return block.Index == blockchain.Chain.Count;
+            if(block.Index == 0) return true;
+            return block.Index == blockchain.Chain[block.Index - 1].Index + 1;
         }
     }
 }

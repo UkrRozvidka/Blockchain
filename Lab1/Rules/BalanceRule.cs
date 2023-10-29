@@ -27,6 +27,7 @@ namespace Lab1.Rules
         public bool IsValid(Node node, Transaction transaction)
         {
             if (transaction == null || node == null) throw new ArgumentNullException();
+            if(!node.Balances.ContainsKey(transaction.Data.From)) return false;
             if (node.Balances[transaction.Data.From] < transaction.Data.Amount)
                     return false;
             return true;

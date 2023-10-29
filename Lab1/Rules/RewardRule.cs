@@ -6,12 +6,13 @@ using System.Threading.Tasks;
 
 namespace Lab1.Rules
 {
-    public class ProofOfWorkRule : IRule
+    public class RewardRule : IRule
     {
         public bool IsValid(Blockchain blockchain, Block block)
         {
             if (block == null || blockchain == null) throw new ArgumentNullException();
-            return blockchain.HashFunction.GetHash(block).EndsWith("25");
-        }   
+            var firstTransaction = block.Transactions.First();
+            return firstTransaction.Data.Amount == blockchain.Reward && firstTransaction.Data.From == new string('0', 64);
+        }
     }
 }

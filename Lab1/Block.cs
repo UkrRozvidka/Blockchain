@@ -26,8 +26,9 @@ namespace Lab1
 
         public override string ToString()
         {
+            var sha256 = new SHA256Hash();
             string res = $"Index: {Index}; Nonce: {Nonce}; {TimeStamp:yyyy-MM-dd HH:mm:ss.fffffff}; " +
-                $"{PrevHash};\n";
+                $"{PrevHash}; {sha256.GetHash(this)}  \n";
             if( Transactions.Count > 0 )
             {
                foreach( Transaction t in Transactions )

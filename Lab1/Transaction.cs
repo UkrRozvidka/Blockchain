@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace Lab1
@@ -11,15 +12,24 @@ namespace Lab1
         public TransactionData Data { get; private set; }
         public string Sign { get; private set; }
 
-        public Transaction(string from, string to, int amount, string sign)
+        public Transaction(string from, string to, int amount, string? privateKey)
         {
             Data = new TransactionData(from, to, amount);
-            Sign = sign;
+            if (privateKey != null)
+            {
+                SignTransaction(privateKey);
+            }
+        }
+
+        private void SignTransaction(string? privateKey)
+        {
+            var e = new Encrypt();
+            Sign = e.SignData(JsonSerializer.Serialize(Data), privateKey);
         }
 
         public override string ToString()
         {
-            return Data.ToString(); 
+            return Data.ToString();
         }
     }
 
@@ -38,7 +48,7 @@ namespace Lab1
 
         public override string ToString()
         {
-            return $"From: {From}; To:{To}; Amount:{Amount}";
+            return $"From: {From}; To: {To}; Amount: {Amount}";
         }
     }
 }

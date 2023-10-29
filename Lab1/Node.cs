@@ -1,6 +1,10 @@
-﻿using System;
+﻿using Lab1.Rules;
+using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
+using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
 using System.Transactions;
@@ -9,43 +13,40 @@ namespace Lab1
 {
     public class Node
     {
-        public readonly Blockchain Blockchain;
-        public readonly string publicKey;
+        public Blockchain Blockchain { get; private set; }
+        public readonly string PublicKey;
         public List<IValidationTransactionRule> TransactionRules { get; private set; }
-        public List<Transaction> MemPool { get; private set; } = new();
         public Dictionary<string, int> Balances { get; private set; } = new();
         public List<Node> Nodes { get; private set; }
 
 
-
         public Node(Blockchain blockchain, string publicKey, List<IValidationTransactionRule> transactionRules, List<Node> otherNodes)
         {
-            Blockchain = blockchain;        
-            this.publicKey = publicKey;
+            Blockchain = blockchain;
+            this.PublicKey = publicKey;
             TransactionRules = transactionRules;
             Nodes = otherNodes;
             Nodes.Add(this);
-            MemPool.Insert(0, new Transaction("0x0000", publicKey, Blockchain.Reward, "0x0000"));          
+            RecalculateBalances();
         }
-        
-        public void AddTransaction(Blockchain blockchain, Transaction transaction)
+
+        public void AddTransaction(Transaction transaction)
         {
-            if(transaction == null) throw new ArgumentNullException(nameof(transaction));
-            if (ValidateTransaction(transaction) && MemPool.TrueForAll(x => x.Data.From != transaction.Data.From))
+            foreach(var node in Nodes)
             {
-                MemPool.Add(transaction);
+                node.Blockchain.AddTransaction(transaction);
             }
         }
 
-        public void AddBlock(Block block)
+        private void SyncTransaction(List<Transaction> blockTransactions)
         {
-            if (block == null) throw new ArgumentNullException(nameof(block));
-            if(ValidateBlock(block))
+            blockTransactions.Clear();
+            foreach (var transaction in Blockchain.MemPool)
             {
-                Blockchain.AddBlock(block);
-                UpdateBalances(block);
-                MemPool.Clear();
-                MemPool.Insert(0, new Transaction("0x0000", publicKey, Blockchain.Reward, "0x0000"));
+                if (ValidateTransaction(transaction) && blockTransactions.TrueForAll(x => x.Data.From != transaction.Data.From))
+                {
+                    blockTransactions.Add(transaction);
+                }
             }
         }
 
@@ -67,6 +68,20 @@ namespace Lab1
             return true;
         }
 
+        public void MineBlock()
+        {
+            Block block;
+            if (Blockchain.Chain.Count == 0)
+                block = FindGenesisBlock();
+            else
+                block = FindCorrectBlockHash();
+            Blockchain.AddBlock(block);
+            UpdateBalances(block);
+            foreach (var node in Nodes)
+                if(node != this)
+                    node.SyncBlockchain();
+        }
+
         private void UpdateBalances(Block block)
         {
             if (block == null) throw new ArgumentNullException(nameof(block));
@@ -78,28 +93,87 @@ namespace Lab1
             }
         }
 
-
-
-        public void Mine()
+        private void RecalculateBalances()
         {
-            int count = 0;
+            Balances.Clear();
+            foreach (var block in Blockchain)
+                UpdateBalances(block);
+        }
+
+        private Block FindCorrectBlockHash()
+        {
             int nonce = 0;
-            var block = new Block(Blockchain.Chain.Count, nonce, Blockchain.hashFunction.GetHash(Blockchain.Chain.Last()), new List<Transaction>(MemPool));
-            while(count < 5)
+            var block = new Block(Blockchain.Chain.Count, nonce, Blockchain.HashFunction.GetHash(Blockchain.Chain.Last()), new List<Transaction>());
+            while (true)
             {
-                if (ValidateBlock(block))
-                {
-                    Console.Out.WriteLineAsync($"Minner {publicKey} add block");
-                    foreach (var node in Nodes)
-                    {
-                        node.AddBlock(block);
-                    }
-                    count++;
-                    block = new Block(Blockchain.Chain.Count, nonce, Blockchain.hashFunction.GetHash(Blockchain.Chain.Last()), new List<Transaction>(MemPool));
-                }
+                SyncTransaction(block.Transactions);
+                block.Transactions.Insert(0, new Transaction(new string('0', 64), PublicKey, Blockchain.Reward, null));
+                if (ValidateBlock(block)) 
+                    return block;
                 block.Nonce = ++nonce;
-                block.TimeStamp = DateTime.UtcNow; 
+                block.TimeStamp = DateTime.UtcNow;
             }
+        }
+
+        private Block FindGenesisBlock()
+        {
+            int nonce = 25112003;
+            var genesisHash = new String('0', 58) + "batsan";
+            var block = new Block(0, nonce, genesisHash, new List<Transaction>());
+            block.Transactions.Insert(0, new Transaction(new string('0', 64), PublicKey, Blockchain.Reward, null));
+            while (true)
+            {
+
+                var pow = new ProofOfWorkRule();
+                if (pow.IsValid(Blockchain, block)) return block;
+                block.Nonce = ++nonce;
+                block.TimeStamp = DateTime.UtcNow;
+                if (nonce == int.MaxValue) nonce = 0;
+            }
+        }
+
+        private bool ValidateBlockchain(Blockchain blockchain)
+        {
+            foreach (var block in blockchain.Chain)
+            {
+                if (!ValidateBlock(block)) return false;
+                for (int i = 1; i < block.Transactions.Count; i++)
+                {
+                    if (!ValidateTransaction(block.Transactions[i])) return false;
+                }
+            }
+            return true;
+        }
+
+        public void SyncBlockchain()
+        {
+            int maxLenght = Blockchain.Chain.Count;
+            Blockchain longestValidChain = Blockchain;
+            foreach (var node in Nodes)
+            {
+                var otherBlockchain = node.Blockchain;
+                if(otherBlockchain.Chain.Count > maxLenght && ValidateBlockchain(otherBlockchain))
+                {
+                    maxLenght = otherBlockchain.Chain.Count;
+                    longestValidChain = otherBlockchain;
+                }
+            }
+
+            if (longestValidChain.Chain.Count > 0 && Blockchain.HashFunction.GetHash(longestValidChain.Chain.ElementAt(Blockchain.Chain.Count - 1))
+                == Blockchain.HashFunction.GetHash(Blockchain.Chain.LastOrDefault()))
+            {
+                for (int i = Blockchain.Chain.Count; i < longestValidChain.Chain.Count; i++)
+                {
+                    Blockchain.AddBlock(longestValidChain.Chain[i]);
+                    UpdateBalances(longestValidChain.Chain[i]);
+                }
+            }
+            else
+            {
+                Blockchain = (Blockchain)longestValidChain.Clone();
+                RecalculateBalances();
+            }
+
         }
     }
 }

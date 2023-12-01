@@ -13,29 +13,28 @@ namespace Lab1
         public List<Block> Chain { get; private set; }  = new();
         public List<IRule> Rules { get; private set; } 
         public readonly IHashFunction HashFunction;
-        public List<Transaction> MemPool { get; private set; } = new();
+        public MemPool MemPool;
         public int Dificalty { get { return 3; } }
         public int Reward { get { return 25; } }
 
         public delegate void BlockchainAddBlockHendler(Blockchain sender, Block e);
         public event BlockchainAddBlockHendler? OnAddBlock;
 
-        public Blockchain(IHashFunction hashFunction, List<IRule> rules) 
+        public Blockchain(IHashFunction hashFunction, List<IRule> rules, MemPool memPool) 
         {
             this.HashFunction = hashFunction;
             Rules = new List<IRule>(rules);
+            MemPool = memPool;
         }
 
         public void AddBlock(Block block)
         {
-            MemPool.RemoveAll(x => block.Transactions.Contains(x));
+            foreach(Transaction transaction in block.Transactions)
+            {
+                MemPool.RemoveTransaction(transaction);
+            }
             Chain.Add(block);
             OnAddBlock?.Invoke(this, block);
-        }
-
-        public void AddTransaction(Transaction transaction)
-        {
-            MemPool.Add(transaction);
         }
 
         public IEnumerator<Block> GetEnumerator()
@@ -44,6 +43,14 @@ namespace Lab1
         }
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+
+        public Block this[int index]
+        {
+            get
+            {
+                return Chain[index];
+            }
+        }
 
         public override string ToString()
         {
@@ -55,7 +62,7 @@ namespace Lab1
 
         public object Clone()
         {
-            var clonedBlockchain = new Blockchain(HashFunction, new List<IRule>(Rules));
+            var clonedBlockchain = new Blockchain(HashFunction, new List<IRule>(Rules), MemPool);
 
             for(int i = 0; i < Chain.Count; i++)
             {

@@ -12,7 +12,9 @@ namespace Lab1
         AddBlock,
         AddNode,
         ChangeCurrentNode,
+        ShowBalances,
         ShowBlockChain,
-        ShowLastBLock
+        ShowLastBLock,
+        SyncBlockchain
     }
 }

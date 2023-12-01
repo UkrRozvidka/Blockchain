@@ -30,13 +30,13 @@ namespace Lab1
             RecalculateBalances();
         }
 
-        public void AddTransaction(Transaction transaction)
-        {
-            foreach(var node in Nodes)
-            {
-                node.Blockchain.AddTransaction(transaction);
-            }
-        }
+        //public void AddTransaction(Transaction transaction)
+        //{
+        //    foreach (var node in Nodes)
+        //    {
+        //        node.Blockchain.MemPool.AddTransaction(transaction);
+        //    }
+        //}
 
         private void SyncTransaction(List<Transaction> blockTransactions)
         {
@@ -77,9 +77,7 @@ namespace Lab1
                 block = FindCorrectBlockHash();
             Blockchain.AddBlock(block);
             UpdateBalances(block);
-            foreach (var node in Nodes)
-                if(node != this)
-                    node.SyncBlockchain();
+            
         }
 
         private void UpdateBalances(Block block)
@@ -107,7 +105,7 @@ namespace Lab1
             while (true)
             {
                 SyncTransaction(block.Transactions);
-                block.Transactions.Insert(0, new Transaction(new string('0', 64), PublicKey, Blockchain.Reward, null));
+                block.Transactions.Insert(0, new Transaction("0x0000", PublicKey, Blockchain.Reward, null));
                 if (ValidateBlock(block)) 
                     return block;
                 block.Nonce = ++nonce;
@@ -120,7 +118,7 @@ namespace Lab1
             int nonce = 25112003;
             var genesisHash = new String('0', 58) + "batsan";
             var block = new Block(0, nonce, genesisHash, new List<Transaction>());
-            block.Transactions.Insert(0, new Transaction(new string('0', 64), PublicKey, Blockchain.Reward, null));
+            block.Transactions.Insert(0, new Transaction("0x0000", PublicKey, Blockchain.Reward, null));
             while (true)
             {
 
@@ -134,7 +132,7 @@ namespace Lab1
 
         private bool ValidateBlockchain(Blockchain blockchain)
         {
-            foreach (var block in blockchain.Chain)
+            foreach (var block in blockchain)
             {
                 if (!ValidateBlock(block)) return false;
                 for (int i = 1; i < block.Transactions.Count; i++)
@@ -159,21 +157,28 @@ namespace Lab1
                 }
             }
 
-            if (longestValidChain.Chain.Count > 0 && Blockchain.HashFunction.GetHash(longestValidChain.Chain.ElementAt(Blockchain.Chain.Count - 1))
-                == Blockchain.HashFunction.GetHash(Blockchain.Chain.LastOrDefault()))
+            foreach (var node in Nodes)
             {
-                for (int i = Blockchain.Chain.Count; i < longestValidChain.Chain.Count; i++)
+                for(int i = 0; i < node.Blockchain.Count(); i++)
                 {
-                    Blockchain.AddBlock(longestValidChain.Chain[i]);
-                    UpdateBalances(longestValidChain.Chain[i]);
+                    if (node.Blockchain.HashFunction.GetHash(node.Blockchain[i]) != node.Blockchain.HashFunction.GetHash(longestValidChain[i]))
+                    {
+                        for(int j = i; j < node.Blockchain.Count(); j++)
+                        {
+                            for(int t = 1; t < node.Blockchain[j].Transactions.Count; t++)
+                            {
+                                node.Blockchain.MemPool.AddTransaction(node.Blockchain[j].Transactions[t]);
+                            }
+                        }
+                    }
                 }
             }
-            else
-            {
-                Blockchain = (Blockchain)longestValidChain.Clone();
-                RecalculateBalances();
-            }
 
+            foreach(var node in Nodes)
+            {
+                node.Blockchain = (Blockchain)longestValidChain.Clone();
+                node.RecalculateBalances();
+            }
         }
     }
 }

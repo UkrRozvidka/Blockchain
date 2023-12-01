@@ -12,7 +12,7 @@ namespace Lab1.Rules
         {
             if (block == null || blockchain == null) throw new ArgumentNullException();
             var firstTransaction = block.Transactions.First();
-            return firstTransaction.Data.Amount == blockchain.Reward && firstTransaction.Data.From == new string('0', 64);
+            return firstTransaction.Data.Amount == blockchain.Reward && firstTransaction.Data.From == "0x0000";
         }
     }
 }

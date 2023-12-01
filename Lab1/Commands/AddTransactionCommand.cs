@@ -26,7 +26,7 @@ namespace Lab1.Commands
             Console.WriteLine("Підпишіть транзакцію приватним ключем");
             var privateKey = Console.ReadLine();
 
-            _runner.CurentNode.AddTransaction(new Transaction(_runner.CurentNode.PublicKey, to, amount, privateKey));  
+            _runner.MemPool.AddTransaction(new Transaction(_runner.CurentNode.PublicKey, to, amount, privateKey));  
         }   
     }
 }
